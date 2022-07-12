@@ -2,53 +2,43 @@ import { useState } from 'react';
 import './App.css';
 import SpeechRecognitionHandler from './components/speechRecognitionHandler';
 import TranscriptedTextPanel from './components/transcriptedTextPanel';
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const SpeechGrammarList = window.SpeechGrammarList || window.webkitSpeechGrammarList;
+const SpeechRecognitionEvent = window.SpeechRecognitionEvent || window.webkitSpeechRecognitionEvent;
+
+let recognition = new SpeechRecognition();
+recognition.continuous = true;
+recognition.lang = 'es-AR';
+recognition.interimResults = false;
+recognition.maxAlternatives = 1;
 
 function App() {
-  //  reconocimiento
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const SpeechGrammarList = window.SpeechGrammarList || window.webkitSpeechGrammarList;
-  const SpeechRecognitionEvent = window.SpeechRecognitionEvent || window.webkitSpeechRecognitionEvent;
-  
-  let recognition = new SpeechRecognition();
-  recognition.continuous = true;
-  recognition.lang = 'es-AR';
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 1;
+  const [transcriptedTextList, setTranscriptedTextList] = useState([{id:0, tText:"aaa"}]);   //  lista de textos -> panel -> texto
+  const [transcriptedTextCount, setTranscriptedTextCount] = useState(1);  //  para key unica
 
-  const [transcriptedTextList, setTranscriptedTextList] = useState([{id:0, tText:"TEST"}]);   //  lista de textos -> panel -> texto
-  const [transcriptedTextCount, setTranscriptedTextCount] = useState(1);                      //  para key unica (mal)
-
+  //  delete a text with id === param
   function handleDelete({ textId }) {
-    var list = [];
-    transcriptedTextList.forEach(({ id, tText }) => {
-      if (id !== textId) {
-        list.push({ id, tText });
-      }
-      else {
-        console.log("Deleting text ID: " + textId + " (" + tText + ")");
-      }
-    });
+    let list = transcriptedTextList.filter(elem => elem.id !== textId);   //  shortened
     setTranscriptedTextList(list);
+
+    console.log("Deleted text");
   }
 
+  //  add a new text "param"
   function addTranscriptedText(text) {
-    var list = [];
-    transcriptedTextList.forEach(element => {
-      list.push(element);
-    });
-    list.push({ id: transcriptedTextCount, tText: text });
-    setTranscriptedTextCount(transcriptedTextCount + 1);
+    let list = [...transcriptedTextList, { id: transcriptedTextCount, tText: text }];  //  shortened
     setTranscriptedTextList(list);
-    console.log("Adding transcripted text: " + text);
+    setTranscriptedTextCount(transcriptedTextCount + 1);
+
+    console.log("Added transcripted text: " + text);
   }
 
+  //  combines all texts in transcriptedTextList
   function mergeVisibleTexts() {
-    var finalText = "";
-    transcriptedTextList.forEach(element => {
-      finalText += " " +  element.tText;
-    });
+    let finalText = transcriptedTextList.map(elem => elem.tText).join(' ');   //  shortened
     setTranscriptedTextList([{id: transcriptedTextCount, tText:finalText}]);
     setTranscriptedTextCount(transcriptedTextCount+1);
+
     console.log("Merged texts");
   }
 
